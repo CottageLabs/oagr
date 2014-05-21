@@ -7,6 +7,7 @@ if __name__ == "__main__":
 
     parser.add_argument("-s", "--source", help="source csv to read identifiers from")
     parser.add_argument("-o", "--out", help="output csv to write results to")
+    parser.add_argument("-e", "--error", help="output csv to write errors to")
 
     args = parser.parse_args()
 
@@ -18,6 +19,10 @@ if __name__ == "__main__":
         print "Please specify an output file with the -o option"
         exit()
 
+    if not args.error:
+        print "Please specify an error output file with the -e option"
+        exit()
+
     # read in the identifiers
     identifiers = []
     with open(args.source) as source:
@@ -27,7 +32,7 @@ if __name__ == "__main__":
 
     print "resolving ", len(identifiers), "identifiers"
 
-    req = pyoag.Request(query=identifiers)
+    req = pyoag.Request(query=identifiers, timeoutdelay=500)
 
     # <th>identifier</th><th>license</th><th>BY</th><th>NC</th><th>SA</th><th>ND</th><th>OKD</th><th>OSI</th><th>info</th><th>checked</th><th>by</th>
 
@@ -74,5 +79,17 @@ if __name__ == "__main__":
             csv_row = [identifier, ltitle, ltype, license_url, by, nc, sa, nd, okd, osi, info, source, checked, plugin]
             clean_row = [unicode(c).encode("utf8", "replace") if c is not None else "" for c in csv_row]
             writer.writerow(clean_row)
+
+    with codecs.open(args.error, "wb") as eout:
+        ewriter = csv.writer(eout)
+        ewriter.writerow(["identifier", "error"])
+        for err in req.errors:
+            identifier = err.get("identifier", [{}]).get("id")
+            msg = err.get("error")
+
+            csv_row = [identifier, msg]
+            clean_row = [unicode(c).encode("utf8", "replace") if c is not None else "" for c in csv_row]
+            ewriter.writerow(clean_row)
+
 
 

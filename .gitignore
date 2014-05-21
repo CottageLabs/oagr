@@ -2,3 +2,4 @@
 .idea
 .~lock*
 oagr.egg-info/
+*.pyc

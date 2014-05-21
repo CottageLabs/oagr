@@ -34,14 +34,28 @@ class Request:
         batches = self.batch(doilist, self.querylimit)
 
         response = []
+        errors = []
         unmatched = [doi for doi in doilist]
         
         for batch in batches:
             try:
+                # request the batch
                 resp = self._getbatch(batch)
-                response.extend(resp)
+
+                # record the successful responses
+                response.extend(resp.get("results", []))
+
+                # record the error responses
+                errors.extend(resp.get("errors", []))
+
+                # make a list of all the identifiers we got answers for
                 returned = [r.get('identifier')[0].get('id') for r in response]
+                returned += [e.get("identifier").get("id") for e in errors]
+
+                # remove all the identifiers we got answers for from the full list
                 [unmatched.remove(doi) for doi in returned if doi in unmatched]
+
+                # wait a bit before hitting the next batch (why?)
                 time.sleep(self.delay)
 
             except requests.exceptions.HTTPError, e:
@@ -52,18 +66,31 @@ class Request:
                 print response.text
                 break
 
-            
+        # now re-batch everything and do it all again (why is this different from what happens above?)
         while len(unmatched) > 0 and (self.timeout() == False):
             try:
                 unmatcheddois = self.batch(unmatched, self.querylimit)[0]
                 resp = self._getbatch(unmatcheddois)
-                response.extend(resp)
+
+                # record the successful responses
+                response.extend(resp.get("results", []))
+
+                # record the error responses
+                errors.extend(resp.get("errors", []))
+
+                # make a list of all the identifiers we got answers for
                 returned = [r.get('identifier')[0].get('id') for r in response]
+                returned += [e.get("identifier").get("id") for e in errors]
+
+                # remove all the identifiers we got answers for from the full list
                 [unmatched.remove(doi) for doi in returned if doi in unmatched]
+
+                # if we've been at this a while, wait a bit longer
                 if self.timesincestart() < 60:
                     time.sleep(self.delay)
                 else:
                     time.sleep(30)
+
             except requests.exceptions.HTTPError, e:
                 print 'HTTPError', e
                 time.sleep(self.delay if self.delay < 10 else 10)
@@ -71,13 +98,17 @@ class Request:
             except ValueError:
                 print response.text
 
-        print "Successfully obtained OAG response for %s of %s articles" % (
+        print "Successfully obtained OAG response for %s of %s articles, %s errors" % (
                                                     len(response),
-                                                    len(doilist)
-                                                                    )
+                                                    len(doilist),
+                                                    len(errors))
+        print "missing", str(unmatched)
 
         self.unmatched = unmatched
         self.response = response
+        self.errors = errors
+
+        # FIXME: probably just don't return anything - encourage the caller to access the properties on the object
         return response
 
         
@@ -94,8 +125,8 @@ class Request:
         response = requests.post(url, headers = BASE_HEADERS, data = query)
         print "Response Status Code:", response.status_code
         response.raise_for_status()
-        return response.json().get('results')
-
+        # return response.json().get('results')
+        return response.json()
 
     def _formatdoilist(self, dois):
         """Take input DOIs and convert to a list of DOIs"""
