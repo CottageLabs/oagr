@@ -34,29 +34,6 @@ if __name__ == "__main__":
 
     req = pyoag.Request(query=identifiers, timeoutdelay=500)
 
-    # <th>identifier</th><th>license</th><th>BY</th><th>NC</th><th>SA</th><th>ND</th><th>OKD</th><th>OSI</th><th>info</th><th>checked</th><th>by</th>
-
-    #var info = '<p>' + record.license[0].provenance.description + '</p>';
-    #        if (record.license[0].url) {
-    #            info += '<p>Learn more about this license at <a target="_blank" href="' + record.license[0].url + '">' + record.license[0].url + '</a></p>'
-    #        }
-    #        if (record.license[0].provenance.source) {
-    #            info += '<p>We retrieved this information from <a target="_blank" href="' + record.license[0].provenance.source + '">' + record.license[0].provenance.source + '</a>.</p>';
-    #        }
-
-    # record.license[0].provenance.handler + '">' + record.license[0].provenance.handler_version
-
-    #row += "<td" + color + ">" + record.license[0].title + " (" + record.license[0].type + ")</td>"
-    #        row += "<td>" + record.license[0].BY + "</td>"
-    #        row += "<td>" + record.license[0].NC + "</td>"
-    #        row += "<td>" + record.license[0].SA + "</td>"
-    #        row += "<td>" + record.license[0].ND + "</td>"
-    #        row += "<td>" + (typeof(record.license[0].is_okd_compliant) === "undefined" ? "" : record.license[0].is_okd_compliant) + "</td>"
-    #        row += "<td>" + (typeof(record.license[0].is_osi_compliant) === "undefined" ? "" : record.license[0].is_osi_compliant) + "</td>"
-    #        row += "<td>" + info + "</td>"
-    #        row += "<td>" + record.license[0].provenance.date + "</td>"
-    #        row += "<td>" + plugin + "</td>"
-    #        row += "</tr>"
     with codecs.open(args.out, "wb") as output:
         writer = csv.writer(output)
         writer.writerow(["identifier", "license title", "license type", "license url", "by", "nc", "sa", "nd", "okd compliant", "osi compliant", "info", "source", "checked", "plugin"])

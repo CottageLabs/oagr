@@ -55,6 +55,8 @@ class Request:
                 # remove all the identifiers we got answers for from the full list
                 [unmatched.remove(doi) for doi in returned if doi in unmatched]
 
+                print "status: " + str(len(response)) + " received (+" + str(len(errors)) + " errors) " + str(len(unmatched)) + " remaining"
+
                 # wait a bit before hitting the next batch (why?)
                 time.sleep(self.delay)
 
@@ -84,6 +86,8 @@ class Request:
 
                 # remove all the identifiers we got answers for from the full list
                 [unmatched.remove(doi) for doi in returned if doi in unmatched]
+
+                print "status: " + str(len(response)) + " received (+" + str(len(errors)) + " errors) " + str(len(unmatched)) + " remaining"
 
                 # if we've been at this a while, wait a bit longer
                 if self.timesincestart() < 60:
@@ -122,8 +126,9 @@ class Request:
         query = self._formatquery(doibatch)
         url = self._formaturl(query)
 
+        print "requesting " + str(len(doibatch))
         response = requests.post(url, headers = BASE_HEADERS, data = query)
-        print "Response Status Code:", response.status_code
+        print "Batch request response status code:", response.status_code
         response.raise_for_status()
         # return response.json().get('results')
         return response.json()
